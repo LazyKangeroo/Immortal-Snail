@@ -7,8 +7,8 @@ from PyQt6.QtGui import QCursor
 class Directions(Enum):
     RIGHT = ['sprites/cat/right_1.png', 'sprites/cat/right_2.png', 'sprites/cat/right_3.png', 'sprites/cat/right_4.png']
     LEFT = ['sprites/cat/left_1.png', 'sprites/cat/left_2.png','sprites/cat/left_3.png', 'sprites/cat/left_4.png']
-    FORWARD = ['sprites/cat/forward_1.png','sprites/cat/forward_2.png','sprites/cat/forward_3.png','sprites/cat/forward_4.png']
-    BACKWARD = ['sprites/cat/back_1.png','sprites/cat/back_2.png','sprites/cat/back_3.png','sprites/cat/back_4.png']
+    UP = ['sprites/cat/forward_1.png','sprites/cat/forward_2.png','sprites/cat/forward_3.png','sprites/cat/forward_4.png']
+    DOWN = ['sprites/cat/back_1.png','sprites/cat/back_2.png','sprites/cat/back_3.png','sprites/cat/back_4.png']
 
 class Cat:
         def __init__(self, win):
@@ -33,23 +33,17 @@ class Cat:
 
         def update(self):
             ## Follow mouse
-            mouse_pos = QCursor.pos()
+            self.mouse_pos = QCursor.pos()
 
             #? Get direction/distance of mouse
             self.geo = self.win.geometry() # This gets pos and size
 
             #* Calculate distance
-            self.distanceX = mouse_pos.x() - self.geo.x() # if positive then move right, if negative then left
-            self.distanceY = mouse_pos.y() - self.geo.y() # if positve then move down, if negative then move up
+            self.distanceX = self.mouse_pos.x() - self.geo.x() # if positive then move right, if negative then left
+            self.distanceY = self.mouse_pos.y() - self.geo.y() # if positve then move down, if negative then move up
             distance = math.hypot(self.distanceX,self.distanceY)
 
-            # since there are 4 different directional views I need to get an angle and see if the sprite is in a set angle range before changing directional sprite.
-            # range between like 45-135 for up and down and the rest is left and right
-
-            if self.distanceX < 0:
-                 direction = Directions.LEFT
-            else:
-                 direction = Directions.RIGHT
+            direction = self.get_direction()
 
             idle = False
             if distance < 5:
@@ -69,3 +63,23 @@ class Cat:
                  'y' : self.geo.y() if idle else new_y,  # type: ignore
                  'idle' : idle
             }
+
+        def get_direction(self):
+            # since there are 4 different directional views I need to get an angle and see if the sprite is in a set angle range before changing directional sprite.
+            # range between like 45-135 for up and down and the rest is left and right
+
+            delta_x = self.mouse_pos.x() - self.geo.x()
+            delta_y = self.mouse_pos.y() - self.geo.y()
+
+            angle = math.atan2(delta_x, delta_y)
+            angle = math.degrees(angle) # convert to usebale values
+
+            if -45 <= angle <= 45:
+                return Directions.UP
+            elif 45 < angle <= 135:
+                return Directions.RIGHT
+            elif -135 <= angle < -45:
+                return Directions.LEFT
+            else:
+                #? This covers the gap from 135 to 180 and -180 to -135
+                return Directions.DOWN

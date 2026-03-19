@@ -57,7 +57,12 @@ class Main(QWidget):
 
         self.move(int(updatedPos['x']), int(updatedPos['y']))
 
-        img = updatedPos['direction'].value[sprite]
+        if updatedPos['direction'] is not None:
+            img = updatedPos['direction'].value[sprite]
+        else:
+            print(updatedPos[''])
+            return
+
         self.updateImg(img)
 
     def updateImg(self, img):
